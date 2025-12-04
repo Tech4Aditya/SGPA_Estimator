@@ -129,7 +129,7 @@
         <!-- Grade Scale Customization Panel -->
         <div class="mb-8">
             <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 flex justify-between items-center">
-                <span>Customize Grading Scale (Default: A+ @ 80+)</span>
+                <span>Customize Grading Scale (Default: D @ 40+, A+ @ 80+)</span>
                 <span id="toggle-icon-panel">▼</span>
             </button>
 
@@ -168,26 +168,54 @@
             7: 60,  // B
             6: 55,  // C+
             5: 50,  // C
-            4: 40,  // D (New Passing Grade)
+            4: 40,  // D 
             // 0: < 40 (F)
         };
         let currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+        
+        // Key used for saving/loading subject marks
+        const MARKS_STORAGE_KEY = 'sgpaMarks_sem1'; 
 
         // Global Constants - Refined structure to include distinct accent colors
         const SUBJECTS = [
             // Title Color (text-*) and Border Color (border-*) are used for clean accents
-            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
-            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
-            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
-            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-emerald-400', borderColor: 'border-emerald-400' }, 
-            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-slate-400', borderColor: 'border-slate-500' }, 
-            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-purple-400', borderColor: 'border-purple-400' }, 
-            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-amber-500', borderColor: 'border-amber-500' }, 
-            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-emerald-500', borderColor: 'border-emerald-500' }, 
-            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-cyan-500', borderColor: 'border-cyan-500' }
+            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
+            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
+            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
+            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-emerald-400', borderColor: 'border-emerald-400' }, 
+            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-slate-400', borderColor: 'border-slate-500' }, 
+            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-purple-400', borderColor: 'border-purple-400' }, 
+            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-amber-500', borderColor: 'border-amber-500' }, 
+            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-emerald-500', borderColor: 'border-emerald-500' }, 
+            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-cyan-500', borderColor: 'border-cyan-500' }
         ];
 
-        // --- Grade Scale Logic ---
+        // --- Data Persistence Logic (Marks) ---
+
+        function loadMarks() {
+            try {
+                const storedMarks = localStorage.getItem(MARKS_STORAGE_KEY);
+                return storedMarks ? JSON.parse(storedMarks) : {};
+            } catch (e) {
+                console.error("Could not load marks from storage.", e);
+                return {};
+            }
+        }
+
+        function saveMark(subjectId, componentKey, value) {
+            try {
+                const marks = loadMarks();
+                if (!marks[subjectId]) {
+                    marks[subjectId] = {};
+                }
+                marks[subjectId][componentKey] = value;
+                localStorage.setItem(MARKS_STORAGE_KEY, JSON.stringify(marks));
+            } catch (e) {
+                console.error("Could not save mark to storage.", e);
+            }
+        }
+
+        // --- Grade Scale Logic (Existing and preserved) ---
 
         function loadGradeScale() {
             try {
@@ -218,12 +246,10 @@
             if (!scaleInputsEl) return;
             
             let html = '';
-            // Only include points 4 through 10 in the customizable UI
             const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
 
             points.forEach(point => {
                 const gradeName = getGradeNameByPoint(point);
-                // Only show custom inputs for grade D (4) and above
                 if (point >= 4) {
                     html += `
                         <div>
@@ -256,7 +282,6 @@
             const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
             const index = points.indexOf(point);
 
-            // Check against the next higher point
             if (index > 0) {
                 const nextHigherPoint = points[index - 1];
                 if (numValue > (currentGradeScale[nextHigherPoint] || 100)) {
@@ -272,7 +297,7 @@
         function resetGradeScale() {
             currentGradeScale = { ...DEFAULT_GRADE_SCALE };
             saveGradeScale();
-            renderGradeScaleInputs(); // Update the input fields
+            renderGradeScaleInputs();
         }
 
         function toggleGradeScalePanel() {
@@ -297,7 +322,7 @@
                 case 7: return "B";
                 case 6: return "C+";
                 case 5: return "C";
-                case 4: return "D"; // New Grade Name
+                case 4: return "D"; 
                 default: return "N/A";
             }
         }
@@ -306,7 +331,6 @@
          * Determines the grade and grade point based on the total marks (out of 100).
          */
         function calculateGradePoint(marks) {
-            // Include point 4 (D grade)
             const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
 
             for (const point of points) {
@@ -314,7 +338,6 @@
                     return { grade: getGradeNameByPoint(point), points: point };
                 }
             }
-            // If marks are below the minimum for D grade (4 points), it is F (0 points)
             return { grade: "F", points: 0 };
         }
 
@@ -327,11 +350,12 @@
             const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
             const creditDisplay = subject.credits % 1 === 0 ? subject.credits : subject.credits.toFixed(1);
             
+            const savedMarks = loadMarks()[id] || {};
+
             const inputsHtml = subject.components.map(component => 
-                renderInputField(id, component.type.toLowerCase(), `${component.type} (Max ${component.max})`, component.max)
+                renderInputField(id, component, savedMarks[component.key] || '')
             ).join('');
 
-            // Clean UI: Dark background with color accent on the left border and title
             return `
                 <div class="subject-card p-6 rounded-xl border-l-4 ${subject.borderColor}">
                     <h2 class="text-xl font-bold ${subject.titleColor} mb-4">${subject.name} (${creditDisplay} Credits)</h2>
@@ -354,27 +378,52 @@
         }
 
         /**
-         * Renders a single input field with constraints.
+         * Renders a single input field with constraints and loaded value.
          */
-        function renderInputField(subjectId, componentType, label, max) {
+        function renderInputField(subjectId, component, savedValue) {
+            const componentType = component.type.toLowerCase();
+            const componentKey = component.key; // 'midsem', 'endsem', 'ta'
+            const max = component.max;
+
             return `
                 <div>
-                    <label for="${subjectId}-${componentType}" class="block text-xs font-medium text-gray-400 mb-1">${label}</label>
+                    <label for="${subjectId}-${componentType}" class="block text-xs font-medium text-gray-400 mb-1">${component.type} (Max ${max})</label>
                     <input 
                         type="number" 
                         id="${subjectId}-${componentType}" 
                         data-max="${max}" 
+                        data-subject-id="${subjectId}"
+                        data-component-key="${componentKey}"
                         class="w-full p-2 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-center"
                         min="0" 
                         max="${max}" 
-                        value=""
+                        value="${savedValue}"
                         placeholder="0-${max}"
-                        oninput="validateInput(this); calculateSGPA();"
+                        oninput="handleMarkInput(this); calculateSGPA();"
                     />
                 </div>
             `;
         }
         
+        /**
+         * Handles input validation and saving mark to localStorage.
+         */
+        function handleMarkInput(input) {
+            validateInput(input);
+            
+            const subjectId = input.getAttribute('data-subject-id');
+            const componentKey = input.getAttribute('data-component-key');
+            const value = input.value;
+
+            // Only save if the value is not empty
+            if (value !== '') {
+                saveMark(subjectId, componentKey, parseFloat(value));
+            } else {
+                // Optionally clear from storage if left blank, treating it as 0 for calculation
+                saveMark(subjectId, componentKey, 0); 
+            }
+        }
+
         /**
          * Ensures input value does not exceed the data-max attribute.
          * @param {HTMLInputElement} input
@@ -391,7 +440,8 @@
                 input.value = max;
             }
             
-            if (value > 0) {
+            // Only update input value if it's a valid number or 0
+            if (!isNaN(value)) {
                 input.value = value;
             }
         }
@@ -403,21 +453,23 @@
         function calculateSGPA() {
             let totalWeightedPoints = 0;
             let totalCredits = 0;
+            const currentMarks = loadMarks();
 
             SUBJECTS.forEach((subject) => {
                 const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
                 const credits = subject.credits;
                 let totalMarks = 0;
                 let isEntered = false;
-
-                // Sum up marks from all components dynamically
+                
+                // Retrieve marks from the DOM inputs first (which were loaded on startup)
                 subject.components.forEach(component => {
                     const componentType = component.type.toLowerCase();
                     const inputEl = document.getElementById(`${id}-${componentType}`);
-                    const mark = parseFloat(inputEl.value) || 0;
+                    // Use the value from the DOM input
+                    const mark = parseFloat(inputEl.value) || 0; 
                     totalMarks += mark;
                     
-                    // Check if the user has physically entered a value (even if it's 0)
+                    // Check if the input field actually has content (not just 0 calculated from an empty string)
                     if (inputEl.value !== '') {
                         isEntered = true;
                     }
@@ -427,7 +479,7 @@
                 const gradeEl = document.getElementById(`${id}-grade`);
                 const pointsEl = document.getElementById(`${id}-points`);
 
-                if (isEntered) {
+                if (isEntered || totalMarks > 0) { // Check if marks were entered or retrieved from storage (if > 0)
                     
                     const { grade, points } = calculateGradePoint(totalMarks);
 
@@ -490,24 +542,22 @@
          * Initialize the application: render cards and attach event listeners.
          */
         function initializeApp() {
-            // Theme is enforced via HTML class, no need for theme logic here.
-            
             // 1. Load the customized grade scale (or default)
             loadGradeScale(); 
             
-            // 2. Render subject cards
+            // 2. Render subject cards (this now loads marks from storage)
             const container = document.getElementById('subjects-container');
             container.innerHTML = SUBJECTS.map((sub) => renderSubjectCard(sub)).join('');
 
             // 3. Attach input listeners
+            // Note: input listeners now call handleMarkInput, which saves the data.
             const inputs = container.querySelectorAll('input[type="number"]');
             inputs.forEach(input => {
-                input.addEventListener('keyup', calculateSGPA);
                 input.addEventListener('change', calculateSGPA);
                 input.addEventListener('blur', calculateSGPA); 
             });
 
-            // 4. Initial calculation run
+            // 4. Initial calculation run (using loaded/default values)
             calculateSGPA();
         }
 
