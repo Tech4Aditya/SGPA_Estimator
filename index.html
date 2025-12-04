@@ -82,18 +82,18 @@
 
     <div class="max-w-4xl mx-auto">
         
-        <!-- Top Controls: Semester Select (Theme Toggle removed) -->
+        <!-- Top Controls: Semester Select -->
         <div class="flex justify-start items-center mb-6">
             <div class="relative">
                 <select id="sem-select" class="bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2 text-sm shadow-md transition duration-300" onchange="alert('Semester selection feature is for future development. Only Semester 1 is available.'); this.value = 1;">
                     <option value="1" selected>Semester 1</option>
-                    <option value="2" disabled>Semester 2 (Locked)</option>
-                    <option value="3" disabled>Semester 3 (Locked)</option>
-                    <option value="4" disabled>Semester 4 (Locked)</option>
-                    <option value="5" disabled>Semester 5 (Locked)</option>
-                    <option value="6" disabled>Semester 6 (Locked)</option>
-                    <option value="7" disabled>Semester 7 (Locked)</option>
-                    <option value="8" disabled>Semester 8 (Locked)</option>
+                    <option value="2" disabled>Semester 2 🔒</option>
+                    <option value="3" disabled>Semester 3 🔒</option>
+                    <option value="4" disabled>Semester 4 🔒</option>
+                    <option value="5" disabled>Semester 5 🔒</option>
+                    <option value="6" disabled>Semester 6 🔒</option>
+                    <option value="7" disabled>Semester 7 🔒</option>
+                    <option value="8" disabled>Semester 8 🔒</option>
                 </select>
             </div>
         </div>
@@ -218,12 +218,12 @@
             if (!scaleInputsEl) return;
             
             let html = '';
-            // Only include points 5 through 10 in the customizable UI for simplicity, plus the new D grade (4)
+            // Only include points 4 through 10 in the customizable UI
             const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
 
             points.forEach(point => {
                 const gradeName = getGradeNameByPoint(point);
-                // Only show custom inputs for grades C (5) and above, plus the new D grade (4)
+                // Only show custom inputs for grade D (4) and above
                 if (point >= 4) {
                     html += `
                         <div>
@@ -463,18 +463,20 @@
                 sgpa = totalWeightedPoints / totalCredits;
                 sgpaEl.textContent = sgpa.toFixed(2);
                 
-                // Update summary message
+                // Update summary message based on the new ranges
                 let message;
                 if (sgpa >= 9.0) {
-                    message = "Outstanding! A stellar performance across the board.";
+                    message = "Outstanding";
                 } else if (sgpa >= 8.0) {
-                    message = "Excellent work! Keep up the great effort.";
+                    message = "Nice job";
                 } else if (sgpa >= 7.0) {
-                    message = "Very good progress. Aiming higher for the next semester!";
-                } else if (sgpa > 0.0) {
-                    message = "A good start. Focus on improving your marks in the next term.";
+                    message = "Good work, keep it up";
+                } else if (sgpa >= 6.0) {
+                    message = "can do better, sincere efforts required";
+                } else if (sgpa >= 4.0) {
+                    message = "need to do hardwork";
                 } else {
-                    message = "Enter your marks to calculate your SGPA.";
+                    message = "bad result, focus on studies";
                 }
                 summaryEl.textContent = message;
 
