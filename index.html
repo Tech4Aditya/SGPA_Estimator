@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester Grade Point Average (SGPA) Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for the X icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .subject-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+        .subject-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Custom glow effect for the icon */
+        .cross-glow {
+            color: #4f46e5;
+            text-shadow: 0 0 5px #6366f1, 0 0 10px #6366f1, 0 0 20px #6366f1;
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-10 p-6 bg-white rounded-xl shadow-lg">
+            
+            <!-- Collaboration Banner -->
+            <div class="flex items-center justify-center space-x-4 mb-6">
+                <!-- Aditya Pandey Image -->
+                <img 
+                    src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/adityapandey.jpg?raw=true" 
+                    alt="Aditya Pandey" 
+                    class="h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-4 border-indigo-500 shadow-lg"
+                    onerror="this.onerror=null; this.src='https://placehold.co/80x80/2563eb/ffffff?text=AP'"
+                >
+                
+                <!-- Cross Icon -->
+                <i class="fa-solid fa-xmark text-4xl cross-glow"></i>
+
+                <!-- JIIT Logo -->
+                <img 
+                    src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/Logo-jiit%20(1).png?raw=true" 
+                    alt="JIIT Noida Logo" 
+                    class="h-16 w-16 md:h-20 md:w-20 object-contain rounded-full bg-white p-1 border-4 border-blue-500 shadow-lg"
+                    onerror="this.onerror=null; this.src='https://placehold.co/80x80/1e3a8a/ffffff?text=JIIT'"
+                >
+            </div>
+            
+            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-700">SGPA Score Estimator</h1>
+            <p class="text-gray-500 mt-2 text-lg">Calculate your Semester Grade Point Average. (Credits vary per subject)</p>
+        </header>
+
+        <!-- Grade Scale Customization Panel -->
+        <div class="mb-8">
+            <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 flex justify-between items-center">
+                <span>Customize Grading Scale (Default: A+ @ 80+)</span>
+                <span id="toggle-icon">▼</span>
+            </button>
+
+            <div id="grade-scale-panel" class="mt-4 p-6 bg-white rounded-xl border border-indigo-200 hidden">
+                <p class="font-semibold text-gray-700 mb-4">Set Minimum Marks Required for Each Grade Point (Max 100):</p>
+                <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- Inputs injected here -->
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="resetGradeScale()" class="bg-red-500 text-white font-medium py-2 px-4 rounded-md hover:bg-red-600 transition duration-150 text-sm">
+                        Reset to Default Scale
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Cards Container -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="subjects-container">
+            <!-- Subject Cards will be injected here -->
+        </div>
+
+        <!-- SGPA Result Panel -->
+        <div class="bg-gradient-to-r from-green-500 to-teal-600 p-6 rounded-xl shadow-2xl text-white text-center">
+            <p class="text-xl font-semibold mb-2">Estimated SGPA</p>
+            <div id="sgpa-result" class="text-6xl font-black">0.00</div>
+            <p id="sgpa-summary" class="mt-3 text-lg font-medium">Enter your marks above to see your result.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const DEFAULT_GRADE_SCALE = {
+            10: 80, // A+
+            9: 70,  // A
+            8: 65,  // B+
+            7: 60,  // B
+            6: 55,  // C+
+            5: 50,  // C
+            // 0: < 50 (F)
+        };
+        let currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+
+        // Global Constants - UPDATED with Physics Lab
+        const SUBJECTS = [
+            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
+            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
+            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
+            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
+            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
+            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
+            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
+            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
+            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] }
+        ];
+
+        // --- Grade Scale Logic ---
+
+        function loadGradeScale() {
+            try {
+                // Prioritize saved scale, otherwise use the default absolute scale
+                const storedScale = localStorage.getItem('sgpaGradeScale');
+                if (storedScale) {
+                    currentGradeScale = JSON.parse(storedScale);
+                } else {
+                    currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+                }
+            } catch (e) {
+                console.error("Could not load grade scale from storage.", e);
+                currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+            }
+            renderGradeScaleInputs();
+        }
+
+        function saveGradeScale() {
+            try {
+                localStorage.setItem('sgpaGradeScale', JSON.stringify(currentGradeScale));
+            } catch (e) {
+                console.error("Could not save grade scale to storage.", e);
+            }
+            calculateSGPA(); // Recalculate everything with the new scale
+        }
+
+        function renderGradeScaleInputs() {
+            const scaleInputsEl = document.getElementById('scale-inputs');
+            if (!scaleInputsEl) return;
+            
+            let html = '';
+            // Ensure points are sorted descending for correct rendering and logic (10, 9, 8, ...)
+            const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
+
+            points.forEach(point => {
+                const gradeName = getGradeNameByPoint(point);
+                html += `
+                    <div>
+                        <label for="grade-${point}" class="block text-xs font-medium text-gray-500 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
+                        <input 
+                            type="number" 
+                            id="grade-${point}" 
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
+                            min="0" 
+                            max="100" 
+                            value="${currentGradeScale[point] || 0}"
+                            oninput="updateGradeScale(${point}, this.value)"
+                        />
+                    </div>
+                `;
+            });
+            scaleInputsEl.innerHTML = html;
+        }
+
+        function updateGradeScale(point, value) {
+            let numValue = parseInt(value);
+            if (isNaN(numValue) || numValue < 0) {
+                numValue = 0;
+            }
+            if (numValue > 100) {
+                numValue = 100;
+            }
+            
+            // Basic logic to ensure higher points require higher marks
+            const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
+            const index = points.indexOf(point);
+
+            // Check against the next higher point
+            if (index > 0) {
+                const nextHigherPoint = points[index - 1];
+                if (numValue > (currentGradeScale[nextHigherPoint] || 100)) {
+                    numValue = (currentGradeScale[nextHigherPoint] || 100);
+                    // Force UI update to capped value
+                    document.getElementById(`grade-${point}`).value = numValue;
+                }
+            }
+            // Check against the next lower point
+            if (index < points.length - 1) {
+                const nextLowerPoint = points[index + 1];
+                if (numValue < (currentGradeScale[nextLowerPoint] || 0)) {
+                    // This creates a situation where the lower grade point has a higher minimum mark. 
+                    // While illogical, we allow it but show the calculated result.
+                }
+            }
+            
+            currentGradeScale[point] = numValue;
+            saveGradeScale();
+        }
+
+        function resetGradeScale() {
+            currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+            saveGradeScale();
+            renderGradeScaleInputs(); // Update the input fields
+        }
+
+        function toggleGradeScalePanel() {
+            const panel = document.getElementById('grade-scale-panel');
+            const icon = document.getElementById('toggle-icon');
+            const isHidden = panel.classList.contains('hidden');
+            
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                icon.textContent = '▲';
+            } else {
+                panel.classList.add('hidden');
+                icon.textContent = '▼';
+            }
+        }
+        
+        function getGradeNameByPoint(point) {
+            switch(point) {
+                case 10: return "A+";
+                case 9: return "A";
+                case 8: return "B+";
+                case 7: return "B";
+                case 6: return "C+";
+                case 5: return "C";
+                default: return "N/A";
+            }
+        }
+
+        /**
+         * Determines the grade and grade point based on the total marks (out of 100).
+         * Uses the current custom or default grading scale.
+         * @param {number} marks - Total marks secured.
+         * @returns {{grade: string, points: number}}
+         */
+        function calculateGradePoint(marks) {
+            // Ensure points are checked from highest to lowest mark requirement
+            const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
+
+            for (const point of points) {
+                if (marks >= (currentGradeScale[point] || 0)) {
+                    return { grade: getGradeNameByPoint(point), points: point };
+                }
+            }
+            // Below the lowest defined threshold (5 points) is a failing grade
+            return { grade: "F", points: 0 };
+        }
+
+        // --- Subject Rendering and Calculation Logic ---
+
+        /**
+         * Renders the input fields for a single subject card.
+         * @param {object} subject - The subject object from the SUBJECTS array.
+         * @returns {string} HTML string
+         */
+        function renderSubjectCard(subject) {
+            const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            // Format credits to show 1.5 instead of 1.50, and 4 instead of 4.0
+            const creditDisplay = subject.credits % 1 === 0 ? subject.credits : subject.credits.toFixed(1);
+            
+            const inputsHtml = subject.components.map(component => 
+                renderInputField(id, component.type.toLowerCase(), `${component.type} (Max ${component.max})`, component.max)
+            ).join('');
+
+            return `
+                <div class="subject-card bg-white p-6 rounded-lg border border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-700 mb-4">${subject.name} (${creditDisplay} Credits)</h2>
+                    
+                    <div class="grid grid-cols-3 gap-3">
+                        ${inputsHtml}
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-500">Total Marks: <span id="${id}-total" class="font-bold text-gray-700">0</span> / 100</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">Grade: <span id="${id}-grade" class="font-bold text-red-500">N/A</span></p>
+                            <p class="text-sm text-gray-500">Points: <span id="${id}-points" class="font-bold text-gray-700">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders a single input field with constraints.
+         */
+        function renderInputField(subjectId, componentType, label, max) {
+            return `
+                <div>
+                    <label for="${subjectId}-${componentType}" class="block text-xs font-medium text-gray-500 mb-1">${label}</label>
+                    <input 
+                        type="number" 
+                        id="${subjectId}-${componentType}" 
+                        data-max="${max}" 
+                        class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-sm font-semibold text-center"
+                        min="0" 
+                        max="${max}" 
+                        value=""
+                        placeholder="0-${max}"
+                        oninput="validateInput(this); calculateSGPA();"
+                    />
+                </div>
+            `;
+        }
+        
+        /**
+         * Ensures input value does not exceed the data-max attribute.
+         * @param {HTMLInputElement} input
+         */
+        function validateInput(input) {
+            let value = parseFloat(input.value);
+            const max = parseFloat(input.getAttribute('data-max'));
+
+            if (isNaN(value) || value < 0) {
+                value = 0; 
+            }
+            if (value > max) {
+                value = max;
+                input.value = max;
+            }
+            
+            if (value > 0) {
+                input.value = value;
+            }
+        }
+
+
+        /**
+         * Main calculation function: Calculates SGPA and updates the UI.
+         */
+        function calculateSGPA() {
+            let totalWeightedPoints = 0;
+            let totalCredits = 0;
+
+            SUBJECTS.forEach((subject) => {
+                const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const credits = subject.credits;
+                let totalMarks = 0;
+                let isEntered = false;
+
+                // Sum up marks from all components dynamically
+                subject.components.forEach(component => {
+                    const componentType = component.type.toLowerCase();
+                    const inputEl = document.getElementById(`${id}-${componentType}`);
+                    const mark = parseFloat(inputEl.value) || 0;
+                    totalMarks += mark;
+                    
+                    // Check if the user has physically entered a value (even if it's 0)
+                    if (inputEl.value !== '') {
+                        isEntered = true;
+                    }
+                });
+                
+                const totalEl = document.getElementById(`${id}-total`);
+                const gradeEl = document.getElementById(`${id}-grade`);
+                const pointsEl = document.getElementById(`${id}-points`);
+
+                if (isEntered) {
+                    
+                    const { grade, points } = calculateGradePoint(totalMarks);
+
+                    // Update individual subject results
+                    totalEl.textContent = totalMarks;
+                    gradeEl.textContent = grade;
+                    pointsEl.textContent = points;
+                    gradeEl.className = grade.includes('F') ? 'font-bold text-red-500' : 'font-bold text-green-600';
+
+                    // Accumulate for SGPA
+                    totalWeightedPoints += credits * points;
+                    totalCredits += credits;
+
+                } else {
+                    // Reset if no marks entered for subject
+                    totalEl.textContent = '0';
+                    gradeEl.textContent = 'N/A';
+                    pointsEl.textContent = '0';
+                    gradeEl.className = 'font-bold text-red-500';
+                }
+            });
+
+            const sgpaEl = document.getElementById('sgpa-result');
+            const summaryEl = document.getElementById('sgpa-summary');
+
+            let sgpa = 0.00;
+
+            if (totalCredits > 0) {
+                sgpa = totalWeightedPoints / totalCredits;
+                sgpaEl.textContent = sgpa.toFixed(2);
+                
+                // Update summary message
+                let message;
+                if (sgpa >= 9.0) {
+                    message = "Outstanding! A stellar performance across the board.";
+                } else if (sgpa >= 8.0) {
+                    message = "Excellent work! Keep up the great effort.";
+                } else if (sgpa >= 7.0) {
+                    message = "Very good progress. Aiming higher for the next semester!";
+                } else if (sgpa > 0.0) {
+                    message = "A good start. Focus on improving your marks in the next term.";
+                } else {
+                    message = "Enter your marks to calculate your SGPA.";
+                }
+                summaryEl.textContent = message;
+
+            } else {
+                sgpaEl.textContent = '0.00';
+                summaryEl.textContent = 'Enter your marks above to see your result.';
+            }
+        }
+
+        /**
+         * Initialize the application: render cards and attach event listeners.
+         */
+        function initializeApp() {
+            // 1. Load the customized grade scale (or default)
+            loadGradeScale(); 
+            
+            // 2. Render subject cards
+            const container = document.getElementById('subjects-container');
+            container.innerHTML = SUBJECTS.map((sub) => renderSubjectCard(sub)).join('');
+
+            // 3. Attach input listeners
+            const inputs = container.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('keyup', calculateSGPA);
+                input.addEventListener('change', calculateSGPA);
+                input.addEventListener('blur', calculateSGPA); 
+            });
+
+            // 4. Initial calculation run
+            calculateSGPA();
+        }
+
+        // Run the initialization function when the window loads
+        window.onload = initializeApp;
+
+    </script>
+
+</body>
+</html>
