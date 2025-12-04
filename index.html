@@ -168,7 +168,8 @@
             7: 60,  // B
             6: 55,  // C+
             5: 50,  // C
-            // 0: < 50 (F)
+            4: 40,  // D (New Passing Grade)
+            // 0: < 40 (F)
         };
         let currentGradeScale = { ...DEFAULT_GRADE_SCALE };
 
@@ -217,24 +218,28 @@
             if (!scaleInputsEl) return;
             
             let html = '';
+            // Only include points 5 through 10 in the customizable UI for simplicity, plus the new D grade (4)
             const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
 
             points.forEach(point => {
                 const gradeName = getGradeNameByPoint(point);
-                html += `
-                    <div>
-                        <label for="grade-${point}" class="block text-xs font-medium text-gray-400 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
-                        <input 
-                            type="number" 
-                            id="grade-${point}" 
-                            class="w-full p-2 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
-                            min="0" 
-                            max="100" 
-                            value="${currentGradeScale[point] || 0}"
-                            oninput="updateGradeScale(${point}, this.value)"
-                        />
-                    </div>
-                `;
+                // Only show custom inputs for grades C (5) and above, plus the new D grade (4)
+                if (point >= 4) {
+                    html += `
+                        <div>
+                            <label for="grade-${point}" class="block text-xs font-medium text-gray-400 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
+                            <input 
+                                type="number" 
+                                id="grade-${point}" 
+                                class="w-full p-2 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
+                                min="0" 
+                                max="100" 
+                                value="${currentGradeScale[point] || 0}"
+                                oninput="updateGradeScale(${point}, this.value)"
+                            />
+                        </div>
+                    `;
+                }
             });
             scaleInputsEl.innerHTML = html;
         }
@@ -292,6 +297,7 @@
                 case 7: return "B";
                 case 6: return "C+";
                 case 5: return "C";
+                case 4: return "D"; // New Grade Name
                 default: return "N/A";
             }
         }
@@ -300,6 +306,7 @@
          * Determines the grade and grade point based on the total marks (out of 100).
          */
         function calculateGradePoint(marks) {
+            // Include point 4 (D grade)
             const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
 
             for (const point of points) {
@@ -307,6 +314,7 @@
                     return { grade: getGradeNameByPoint(point), points: point };
                 }
             }
+            // If marks are below the minimum for D grade (4 points), it is F (0 points)
             return { grade: "F", points: 0 };
         }
 
@@ -430,7 +438,7 @@
                     
                     // Update text color based on grade result
                     const gradeTextColor = points >= 7 ? 'text-green-400' : 
-                                           points > 0 ? 'text-yellow-400' : 'text-red-400';
+                                           points >= 4 ? 'text-yellow-400' : 'text-red-400';
                     gradeEl.className = `font-bold ${gradeTextColor}`;
 
                     // Accumulate for SGPA
