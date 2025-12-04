@@ -1,64 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semester Grade Point Average (SGPA) Calculator</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Font Awesome for the X icon -->
+    <!-- Load Font Awesome for the X icon and theme icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Use Inter font -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        /* Enforced Dark Mode and Live Background */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f7f9fc;
+            background: #0d111c;
+            color: #d1d5db;
+            transition: background-color 0.3s;
+            
+            /* Live Gradient Background Effect */
+            background-image: linear-gradient(270deg, #0d111c, #1f2937, #0d111c, #1f2937);
+            background-size: 400% 400%;
+            animation: gradientMove 30s ease infinite;
         }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .subject-card {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s;
+            background-color: #1f2937; /* Darker card background */
+            box-shadow: 0 4px 10px -2px rgba(255, 255, 255, 0.08), 0 2px 4px -2px rgba(255, 255, 255, 0.04);
+            border: 1px solid #374151; /* Darker border */
+            transition: transform 0.2s, background-color 0.3s, box-shadow 0.3s;
         }
         .subject-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+        }
+        input {
+            background-color: #374151 !important;
+            border-color: #4b5563 !important;
+            color: #d1d5db !important;
         }
         input[type="number"] {
             -moz-appearance: textfield;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        /* Custom glow effect for the icon */
+        
+        /* Custom glow effect for the icon (Red -> Orange -> Green Cycle) */
         .cross-glow {
-            color: #4f46e5;
-            text-shadow: 0 0 5px #6366f1, 0 0 10px #6366f1, 0 0 20px #6366f1;
-            animation: pulse 1.5s infinite alternate;
+            animation: color-cycle 4s infinite alternate, pulse 1.5s infinite alternate;
         }
+        
         @keyframes pulse {
-            from { opacity: 0.8; }
+            from { opacity: 0.7; }
             to { opacity: 1; }
+        }
+        
+        @keyframes color-cycle {
+            0%   { color: #ef4444; text-shadow: 0 0 8px #ef4444, 0 0 15px #f87171; } /* Red */
+            50%  { color: #f97316; text-shadow: 0 0 8px #f97316, 0 0 15px #fb923c; } /* Orange */
+            100% { color: #10b981; text-shadow: 0 0 8px #10b981, 0 0 15px #34d399; } /* Green */
+        }
+
+        /* Red Glow for Aditya Pandey's Logo */
+        .red-glow {
+            box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.5), 0 0 5px 2px rgba(239, 68, 68, 0.8) !important;
         }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-10 p-6 bg-white rounded-xl shadow-lg">
+        
+        <!-- Top Controls: Semester Select (Theme Toggle removed) -->
+        <div class="flex justify-start items-center mb-6">
+            <div class="relative">
+                <select id="sem-select" class="bg-gray-700 text-gray-200 border border-gray-600 rounded-lg p-2 text-sm shadow-md transition duration-300" onchange="alert('Semester selection feature is for future development. Only Semester 1 is available.'); this.value = 1;">
+                    <option value="1" selected>Semester 1</option>
+                    <option value="2" disabled>Semester 2 (Locked)</option>
+                    <option value="3" disabled>Semester 3 (Locked)</option>
+                    <option value="4" disabled>Semester 4 (Locked)</option>
+                    <option value="5" disabled>Semester 5 (Locked)</option>
+                    <option value="6" disabled>Semester 6 (Locked)</option>
+                    <option value="7" disabled>Semester 7 (Locked)</option>
+                    <option value="8" disabled>Semester 8 (Locked)</option>
+                </select>
+            </div>
+        </div>
+
+        <header class="text-center mb-10 p-6 bg-gray-800 rounded-xl shadow-2xl transition duration-300">
             
             <!-- Collaboration Banner -->
             <div class="flex items-center justify-center space-x-4 mb-6">
-                <!-- Aditya Pandey Image -->
+                <!-- Aditya Pandey Image with Red Glow -->
                 <img 
                     src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/adityapandey.jpg?raw=true" 
                     alt="Aditya Pandey" 
-                    class="h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-4 border-indigo-500 shadow-lg"
+                    class="red-glow h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-4 border-red-500 shadow-lg"
                     onerror="this.onerror=null; this.src='https://placehold.co/80x80/2563eb/ffffff?text=AP'"
                 >
                 
-                <!-- Cross Icon -->
+                <!-- Cross Icon with Color Cycle Glow -->
                 <i class="fa-solid fa-xmark text-4xl cross-glow"></i>
 
                 <!-- JIIT Logo -->
@@ -70,19 +122,19 @@
                 >
             </div>
             
-            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-700">SGPA Score Estimator</h1>
-            <p class="text-gray-500 mt-2 text-lg">Calculate your Semester Grade Point Average. (Credits vary per subject)</p>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-400">SGPA Score Estimator</h1>
+            <p class="text-gray-400 mt-2 text-lg">Calculate your Semester Grade Point Average. (Credits vary per subject)</p>
         </header>
 
         <!-- Grade Scale Customization Panel -->
         <div class="mb-8">
             <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 flex justify-between items-center">
                 <span>Customize Grading Scale (Default: A+ @ 80+)</span>
-                <span id="toggle-icon">▼</span>
+                <span id="toggle-icon-panel">▼</span>
             </button>
 
-            <div id="grade-scale-panel" class="mt-4 p-6 bg-white rounded-xl border border-indigo-200 hidden">
-                <p class="font-semibold text-gray-700 mb-4">Set Minimum Marks Required for Each Grade Point (Max 100):</p>
+            <div id="grade-scale-panel" class="mt-4 p-6 bg-gray-800 rounded-xl border border-indigo-700 hidden transition duration-300">
+                <p class="font-semibold text-gray-300 mb-4">Set Minimum Marks Required for Each Grade Point (Max 100):</p>
                 <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- Inputs injected here -->
                 </div>
@@ -120,24 +172,24 @@
         };
         let currentGradeScale = { ...DEFAULT_GRADE_SCALE };
 
-        // Global Constants - UPDATED with Physics Lab
+        // Global Constants - Refined structure to include distinct accent colors
         const SUBJECTS = [
-            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
-            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
-            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
-            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
-            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }] },
-            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
-            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
-            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] },
-            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }] }
+            // Title Color (text-*) and Border Color (border-*) are used for clean accents
+            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
+            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
+            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
+            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-emerald-400', borderColor: 'border-emerald-400' }, 
+            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30 }, { type: 'Endsem', max: 40 }, { type: 'TA', max: 30 }], titleColor: 'text-slate-400', borderColor: 'border-slate-500' }, 
+            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-purple-400', borderColor: 'border-purple-400' }, 
+            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-amber-500', borderColor: 'border-amber-500' }, 
+            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-emerald-500', borderColor: 'border-emerald-500' }, 
+            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20 }, { type: 'Endsem', max: 20 }, { type: 'TA', max: 60 }], titleColor: 'text-cyan-500', borderColor: 'border-cyan-500' }
         ];
 
         // --- Grade Scale Logic ---
 
         function loadGradeScale() {
             try {
-                // Prioritize saved scale, otherwise use the default absolute scale
                 const storedScale = localStorage.getItem('sgpaGradeScale');
                 if (storedScale) {
                     currentGradeScale = JSON.parse(storedScale);
@@ -165,18 +217,17 @@
             if (!scaleInputsEl) return;
             
             let html = '';
-            // Ensure points are sorted descending for correct rendering and logic (10, 9, 8, ...)
             const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
 
             points.forEach(point => {
                 const gradeName = getGradeNameByPoint(point);
                 html += `
                     <div>
-                        <label for="grade-${point}" class="block text-xs font-medium text-gray-500 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
+                        <label for="grade-${point}" class="block text-xs font-medium text-gray-400 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
                         <input 
                             type="number" 
                             id="grade-${point}" 
-                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
+                            class="w-full p-2 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
                             min="0" 
                             max="100" 
                             value="${currentGradeScale[point] || 0}"
@@ -197,7 +248,6 @@
                 numValue = 100;
             }
             
-            // Basic logic to ensure higher points require higher marks
             const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
             const index = points.indexOf(point);
 
@@ -206,16 +256,7 @@
                 const nextHigherPoint = points[index - 1];
                 if (numValue > (currentGradeScale[nextHigherPoint] || 100)) {
                     numValue = (currentGradeScale[nextHigherPoint] || 100);
-                    // Force UI update to capped value
                     document.getElementById(`grade-${point}`).value = numValue;
-                }
-            }
-            // Check against the next lower point
-            if (index < points.length - 1) {
-                const nextLowerPoint = points[index + 1];
-                if (numValue < (currentGradeScale[nextLowerPoint] || 0)) {
-                    // This creates a situation where the lower grade point has a higher minimum mark. 
-                    // While illogical, we allow it but show the calculated result.
                 }
             }
             
@@ -231,7 +272,7 @@
 
         function toggleGradeScalePanel() {
             const panel = document.getElementById('grade-scale-panel');
-            const icon = document.getElementById('toggle-icon');
+            const icon = document.getElementById('toggle-icon-panel');
             const isHidden = panel.classList.contains('hidden');
             
             if (isHidden) {
@@ -257,12 +298,8 @@
 
         /**
          * Determines the grade and grade point based on the total marks (out of 100).
-         * Uses the current custom or default grading scale.
-         * @param {number} marks - Total marks secured.
-         * @returns {{grade: string, points: number}}
          */
         function calculateGradePoint(marks) {
-            // Ensure points are checked from highest to lowest mark requirement
             const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
 
             for (const point of points) {
@@ -270,7 +307,6 @@
                     return { grade: getGradeNameByPoint(point), points: point };
                 }
             }
-            // Below the lowest defined threshold (5 points) is a failing grade
             return { grade: "F", points: 0 };
         }
 
@@ -278,33 +314,31 @@
 
         /**
          * Renders the input fields for a single subject card.
-         * @param {object} subject - The subject object from the SUBJECTS array.
-         * @returns {string} HTML string
          */
         function renderSubjectCard(subject) {
             const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-            // Format credits to show 1.5 instead of 1.50, and 4 instead of 4.0
             const creditDisplay = subject.credits % 1 === 0 ? subject.credits : subject.credits.toFixed(1);
             
             const inputsHtml = subject.components.map(component => 
                 renderInputField(id, component.type.toLowerCase(), `${component.type} (Max ${component.max})`, component.max)
             ).join('');
 
+            // Clean UI: Dark background with color accent on the left border and title
             return `
-                <div class="subject-card bg-white p-6 rounded-lg border border-gray-200">
-                    <h2 class="text-xl font-bold text-gray-700 mb-4">${subject.name} (${creditDisplay} Credits)</h2>
+                <div class="subject-card p-6 rounded-xl border-l-4 ${subject.borderColor}">
+                    <h2 class="text-xl font-bold ${subject.titleColor} mb-4">${subject.name} (${creditDisplay} Credits)</h2>
                     
                     <div class="grid grid-cols-3 gap-3">
                         ${inputsHtml}
                     </div>
                     
-                    <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center">
                         <div>
-                            <p class="text-sm text-gray-500">Total Marks: <span id="${id}-total" class="font-bold text-gray-700">0</span> / 100</p>
+                            <p class="text-sm text-gray-400">Total Marks: <span id="${id}-total" class="font-bold text-white">0</span> / 100</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-sm text-gray-500">Grade: <span id="${id}-grade" class="font-bold text-red-500">N/A</span></p>
-                            <p class="text-sm text-gray-500">Points: <span id="${id}-points" class="font-bold text-gray-700">0</span></p>
+                            <p class="text-sm text-gray-400">Grade: <span id="${id}-grade" class="font-bold text-red-500">N/A</span></p>
+                            <p class="text-sm text-gray-400">Points: <span id="${id}-points" class="font-bold text-white">0</span></p>
                         </div>
                     </div>
                 </div>
@@ -317,12 +351,12 @@
         function renderInputField(subjectId, componentType, label, max) {
             return `
                 <div>
-                    <label for="${subjectId}-${componentType}" class="block text-xs font-medium text-gray-500 mb-1">${label}</label>
+                    <label for="${subjectId}-${componentType}" class="block text-xs font-medium text-gray-400 mb-1">${label}</label>
                     <input 
                         type="number" 
                         id="${subjectId}-${componentType}" 
                         data-max="${max}" 
-                        class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-sm font-semibold text-center"
+                        class="w-full p-2 border border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-center"
                         min="0" 
                         max="${max}" 
                         value=""
@@ -393,7 +427,11 @@
                     totalEl.textContent = totalMarks;
                     gradeEl.textContent = grade;
                     pointsEl.textContent = points;
-                    gradeEl.className = grade.includes('F') ? 'font-bold text-red-500' : 'font-bold text-green-600';
+                    
+                    // Update text color based on grade result
+                    const gradeTextColor = points >= 7 ? 'text-green-400' : 
+                                           points > 0 ? 'text-yellow-400' : 'text-red-400';
+                    gradeEl.className = `font-bold ${gradeTextColor}`;
 
                     // Accumulate for SGPA
                     totalWeightedPoints += credits * points;
@@ -404,7 +442,7 @@
                     totalEl.textContent = '0';
                     gradeEl.textContent = 'N/A';
                     pointsEl.textContent = '0';
-                    gradeEl.className = 'font-bold text-red-500';
+                    gradeEl.className = 'font-bold text-gray-400';
                 }
             });
 
@@ -442,6 +480,8 @@
          * Initialize the application: render cards and attach event listeners.
          */
         function initializeApp() {
+            // Theme is enforced via HTML class, no need for theme logic here.
+            
             // 1. Load the customized grade scale (or default)
             loadGradeScale(); 
             
