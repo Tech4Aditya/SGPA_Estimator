@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semester Grade Point Average (SGPA) Calculator</title>
+    <!-- FAVICON: Using the JIIT logo image -->
+    <link rel="icon" type="image/png" href="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/Logo-jiit%20(1).png?raw=true">
+    
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Font Awesome for the X icon and theme icon -->
@@ -194,6 +197,7 @@
 
         // Global Constants - Refined structure to include distinct accent colors
         const SUBJECTS = [
+            // Title Color (text-*) and Border Color (border-*) are used for clean accents
             { id: "sdf1", name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
             { id: "physics1", name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
             { id: "maths1", name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
@@ -249,9 +253,24 @@
             try {
                 const storedScales = localStorage.getItem(SCALE_STORAGE_KEY);
                 if (storedScales) {
-                    namedGradeScales = JSON.parse(storedScales);
+                    const loadedScales = JSON.parse(storedScales);
+                    // Ensure loaded scales have correct structure (name and cutoffs)
+                    SCALE_SLOTS.forEach(id => {
+                        if (loadedScales[id]) {
+                            namedGradeScales[id] = {
+                                name: loadedScales[id].name || getScaleDisplayName(id),
+                                cutoffs: loadedScales[id].cutoffs || loadedScales[id]
+                            };
+                        } else {
+                             namedGradeScales[id] = { cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
+                        }
+                    });
                 } else {
-                    namedGradeScales = { DEFAULT: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT1: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT2: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
+                    namedGradeScales = {
+                        DEFAULT: { name: getScaleDisplayName('DEFAULT'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } },
+                        ALT1: { name: getScaleDisplayName('ALT1'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } },
+                        ALT2: { name: getScaleDisplayName('ALT2'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } }
+                    };
                 }
 
                 const storedMap = localStorage.getItem(SUBJECT_SCALE_MAP_KEY);
@@ -262,18 +281,23 @@
                     SUBJECTS.forEach(sub => { subjectScaleMap[sub.subjectId] = 'DEFAULT'; });
                 }
                 
-                // Set tab names correctly
+                // Set tab names correctly on the UI
                 SCALE_SLOTS.forEach(id => {
-                    if (namedGradeScales[id] && namedGradeScales[id].name) {
+                    const scaleData = namedGradeScales[id];
+                    if (scaleData && scaleData.name) {
                         const button = document.querySelector(`.tab-button[data-scale-id="${id}"]`);
-                        if (button) button.textContent = namedGradeScales[id].name;
+                        if (button) button.textContent = scaleData.name;
                     }
                 });
 
             } catch (e) {
                 console.error("Could not load grade scales or map from storage.", e);
                 // Reset to safe defaults if storage fails
-                namedGradeScales = { DEFAULT: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT1: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT2: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
+                namedGradeScales = {
+                    DEFAULT: { name: getScaleDisplayName('DEFAULT'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } },
+                    ALT1: { name: getScaleDisplayName('ALT1'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } },
+                    ALT2: { name: getScaleDisplayName('ALT2'), cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } }
+                };
                 SUBJECTS.forEach(sub => { subjectScaleMap[sub.subjectId] = 'DEFAULT'; });
             }
             showScale(currentEditingScaleId);
@@ -299,7 +323,11 @@
 
         function showScale(scaleId) {
             currentEditingScaleId = scaleId;
-            const currentCutoffs = namedGradeScales[scaleId] || DEFAULT_GRADE_SCALE_CUTOFFS;
+            
+            // Get cutoffs from the structured object
+            const scaleData = namedGradeScales[scaleId] || {};
+            const currentCutoffs = scaleData.cutoffs || DEFAULT_GRADE_SCALE_CUTOFFS;
+            
             const scaleInputsEl = document.getElementById('scale-inputs');
             
             // Update Tab active state
@@ -340,25 +368,40 @@
                 numValue = 100;
             }
             
-            // Store value in the current scale object
-            const currentCutoffs = namedGradeScales[currentEditingScaleId];
-            if (currentCutoffs) {
-                currentCutoffs[point] = numValue;
-                saveNamedScales();
+            // Ensure namedGradeScales[currentEditingScaleId] is properly initialized for cutoffs
+            if (!namedGradeScales[currentEditingScaleId]) {
+                namedGradeScales[currentEditingScaleId] = { cutoffs: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
+            } else if (!namedGradeScales[currentEditingScaleId].cutoffs) {
+                 namedGradeScales[currentEditingScaleId].cutoffs = { ...DEFAULT_GRADE_SCALE_CUTOFFS };
             }
+            
+            namedGradeScales[currentEditingScaleId].cutoffs[point] = numValue;
+            saveNamedScales();
         }
 
         function resetCurrentScale() {
-            namedGradeScales[currentEditingScaleId] = { ...DEFAULT_GRADE_SCALE_CUTOFFS };
+            namedGradeScales[currentEditingScaleId].cutoffs = { ...DEFAULT_GRADE_SCALE_CUTOFFS };
+            // Also reset name
+            namedGradeScales[currentEditingScaleId].name = getScaleDisplayName(currentEditingScaleId);
+            const button = document.querySelector(`.tab-button[data-scale-id="${currentEditingScaleId}"]`);
+            if (button) button.textContent = namedGradeScales[currentEditingScaleId].name;
+
             saveNamedScales();
             showScale(currentEditingScaleId);
+            renderSubjectCards(); // Update dropdowns if name changed
         }
         
         function saveCurrentScaleName() {
-            const newName = prompt(`Enter a new name for ${getScaleDisplayName(currentEditingScaleId)}:`);
+            const currentName = (namedGradeScales[currentEditingScaleId] && namedGradeScales[currentEditingScaleId].name) || getScaleDisplayName(currentEditingScaleId);
+            const newName = prompt(`Enter a new name for ${currentName}:`);
             if (newName && newName.trim()) {
                 const button = document.querySelector(`.tab-button[data-scale-id="${currentEditingScaleId}"]`);
                 if (button) button.textContent = newName.trim();
+                
+                // Initialize structure if needed, then save name
+                if (!namedGradeScales[currentEditingScaleId]) {
+                    namedGradeScales[currentEditingScaleId] = {};
+                }
                 namedGradeScales[currentEditingScaleId].name = newName.trim();
                 saveNamedScales();
                 // Re-render subject cards to update dropdown names
@@ -399,7 +442,11 @@
          */
         function calculateGradePoint(subjectId, marks) {
             const scaleId = subjectScaleMap[subjectId] || 'DEFAULT';
-            const cutoffs = namedGradeScales[scaleId] || DEFAULT_GRADE_SCALE_CUTOFFS;
+            
+            let cutoffs = DEFAULT_GRADE_SCALE_CUTOFFS;
+            if (namedGradeScales[scaleId]) {
+                cutoffs = namedGradeScales[scaleId].cutoffs || namedGradeScales[scaleId];
+            }
             
             const points = Object.keys(cutoffs).map(Number).sort((a, b) => b - a);
 
@@ -415,6 +462,10 @@
 
         function renderSubjectCards() {
              const container = document.getElementById('subjects-container');
+             // Ensure the container is defined before calling map
+             if (!container) return; 
+
+             // Map over the SUBJECTS array and render
              container.innerHTML = SUBJECTS.map((sub) => renderSingleSubjectCard(sub)).join('');
              
              // Re-attach input listeners
@@ -438,6 +489,12 @@
          * Renders the input fields for a single subject card.
          */
         function renderSingleSubjectCard(subject) {
+            // Check if subject is valid before proceeding
+            if (!subject || !subject.subjectId) {
+                console.error("Invalid subject data passed to renderSingleSubjectCard", subject);
+                return '';
+            }
+
             const id = subject.subjectId;
             const creditDisplay = subject.credits % 1 === 0 ? subject.credits : subject.credits.toFixed(1);
             const savedMarks = loadMarks()[id] || {};
@@ -449,7 +506,8 @@
 
             // Options for scale selector
             const scaleOptions = SCALE_SLOTS.map(scaleId => {
-                const name = (namedGradeScales[scaleId] && namedGradeScales[scaleId].name) || getScaleDisplayName(scaleId);
+                const scaleData = namedGradeScales[scaleId];
+                const name = (scaleData && scaleData.name) || getScaleDisplayName(scaleId);
                 return `<option value="${scaleId}" ${currentScaleId === scaleId ? 'selected' : ''}>${name}</option>`;
             }).join('');
 
