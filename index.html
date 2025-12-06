@@ -76,6 +76,12 @@
         .red-glow {
             box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.5), 0 0 5px 2px rgba(239, 68, 68, 0.8) !important;
         }
+
+        .tab-button.active {
+            border-bottom: 2px solid #6366f1;
+            background-color: #374151;
+            color: #e0e7ff;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
@@ -129,19 +135,32 @@
         <!-- Grade Scale Customization Panel -->
         <div class="mb-8">
             <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 flex justify-between items-center">
-                <span>Customize Grading Scale (Default: D @ 40+, A+ @ 80+)</span>
+                <span>Grade Scale Manager (Define Scales A, B, C)</span>
                 <span id="toggle-icon-panel">▼</span>
             </button>
 
-            <div id="grade-scale-panel" class="mt-4 p-6 bg-gray-800 rounded-xl border border-indigo-700 hidden transition duration-300">
-                <p class="font-semibold text-gray-300 mb-4">Set Minimum Marks Required for Each Grade Point (Max 100):</p>
-                <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <!-- Inputs injected here -->
+            <div id="grade-scale-panel" class="mt-4 p-0 bg-gray-800 rounded-xl border border-indigo-700 hidden transition duration-300">
+                <!-- Tabs for Scales -->
+                <div class="flex border-b border-indigo-700">
+                    <button class="tab-button active flex-1 p-3 text-sm font-semibold text-gray-300 rounded-tl-xl" data-scale-id="DEFAULT" onclick="showScale('DEFAULT')">Scale A (Default)</button>
+                    <button class="tab-button flex-1 p-3 text-sm font-semibold text-gray-300" data-scale-id="ALT1" onclick="showScale('ALT1')">Scale B (Custom 1)</button>
+                    <button class="tab-button flex-1 p-3 text-sm font-semibold text-gray-300 rounded-tr-xl" data-scale-id="ALT2" onclick="showScale('ALT2')">Scale C (Custom 2)</button>
                 </div>
-                <div class="mt-6 flex justify-end">
-                    <button onclick="resetGradeScale()" class="bg-red-500 text-white font-medium py-2 px-4 rounded-md hover:bg-red-600 transition duration-150 text-sm">
-                        Reset to Default Scale
-                    </button>
+
+                <!-- Scale Content -->
+                <div id="scale-content" class="p-6">
+                    <p class="font-semibold text-gray-300 mb-4">Set Minimum Marks Required for Each Grade Point (Max 100):</p>
+                    <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <!-- Inputs injected here -->
+                    </div>
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="saveCurrentScaleName()" class="bg-gray-700 text-white font-medium py-2 px-4 rounded-md hover:bg-gray-600 transition duration-150 text-sm">
+                            Save Scale Name
+                        </button>
+                        <button onclick="resetCurrentScale()" class="bg-red-500 text-white font-medium py-2 px-4 rounded-md hover:bg-red-600 transition duration-150 text-sm">
+                            Reset Scale
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,35 +179,35 @@
     </div>
 
     <script>
-        // --- Configuration ---
-        const DEFAULT_GRADE_SCALE = {
-            10: 80, // A+
-            9: 70,  // A
-            8: 65,  // B+
-            7: 60,  // B
-            6: 55,  // C+
-            5: 50,  // C
-            4: 40,  // D 
-            // 0: < 40 (F)
+        // --- Configuration & Constants ---
+        const DEFAULT_GRADE_SCALE_CUTOFFS = {
+            10: 80, 9: 70, 8: 65, 7: 60, 6: 55, 5: 50, 4: 40,
         };
-        let currentGradeScale = { ...DEFAULT_GRADE_SCALE };
-        
-        // Key used for saving/loading subject marks
+        const SCALE_STORAGE_KEY = 'sgpaNamedGradeScales';
+        const SUBJECT_SCALE_MAP_KEY = 'sgpaSubjectScaleMap';
         const MARKS_STORAGE_KEY = 'sgpaMarks_sem1'; 
+        const SCALE_SLOTS = ['DEFAULT', 'ALT1', 'ALT2'];
+
+        let namedGradeScales = {};
+        let subjectScaleMap = {};
+        let currentEditingScaleId = 'DEFAULT';
 
         // Global Constants - Refined structure to include distinct accent colors
         const SUBJECTS = [
-            // Title Color (text-*) and Border Color (border-*) are used for clean accents
-            { name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
-            { name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
-            { name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
-            { name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-emerald-400', borderColor: 'border-emerald-400' }, 
-            { name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-slate-400', borderColor: 'border-slate-500' }, 
-            { name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-purple-400', borderColor: 'border-purple-400' }, 
-            { name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-amber-500', borderColor: 'border-amber-500' }, 
-            { name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-emerald-500', borderColor: 'border-emerald-500' }, 
-            { name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-cyan-500', borderColor: 'border-cyan-500' }
-        ];
+            { id: "sdf1", name: "SDF-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-amber-400', borderColor: 'border-amber-400' }, 
+            { id: "physics1", name: "Physics-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-cyan-400', borderColor: 'border-cyan-400' }, 
+            { id: "maths1", name: "Maths-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-fuchsia-400', borderColor: 'border-fuchsia-400' }, 
+            { id: "bel1", name: "BEL-1", credits: 4, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-emerald-400', borderColor: 'border-emerald-400' }, 
+            { id: "english", name: "English", credits: 1.5, components: [{ type: 'Midsem', max: 30, key: 'midsem' }, { type: 'Endsem', max: 40, key: 'endsem' }, { type: 'TA', max: 30, key: 'ta' }], titleColor: 'text-slate-400', borderColor: 'border-slate-500' }, 
+            { id: "eddlab", name: "EDD Lab", credits: 1.5, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-purple-400', borderColor: 'border-purple-400' }, 
+            { id: "sdflab", name: "SDF LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-amber-500', borderColor: 'border-amber-500' }, 
+            { id: "bellab", name: "BEL LAB", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-emerald-500', borderColor: 'border-emerald-500' }, 
+            { id: "physicslab", name: "Physics Lab", credits: 1, components: [{ type: 'Midsem', max: 20, key: 'midsem' }, { type: 'Endsem', max: 20, key: 'endsem' }, { type: 'TA', max: 60, key: 'ta' }], titleColor: 'text-cyan-500', borderColor: 'border-cyan-600' }
+        ].map(sub => ({
+            ...sub,
+            subjectId: sub.name.toLowerCase().replace(/[^a-z0-9]/g, '') // Ensure subjectId is calculated
+        }));
+
 
         // --- Data Persistence Logic (Marks) ---
 
@@ -215,38 +234,80 @@
             }
         }
 
-        // --- Grade Scale Logic (Existing and preserved) ---
+        // --- Grade Scale Management Logic (Refactored) ---
 
-        function loadGradeScale() {
+        function getScaleDisplayName(scaleId) {
+            switch(scaleId) {
+                case 'DEFAULT': return 'Scale A (Default)';
+                case 'ALT1': return 'Scale B (Custom 1)';
+                case 'ALT2': return 'Scale C (Custom 2)';
+                default: return 'Unknown';
+            }
+        }
+
+        function loadAllScalesAndMaps() {
             try {
-                const storedScale = localStorage.getItem('sgpaGradeScale');
-                if (storedScale) {
-                    currentGradeScale = JSON.parse(storedScale);
+                const storedScales = localStorage.getItem(SCALE_STORAGE_KEY);
+                if (storedScales) {
+                    namedGradeScales = JSON.parse(storedScales);
                 } else {
-                    currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+                    namedGradeScales = { DEFAULT: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT1: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT2: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
                 }
+
+                const storedMap = localStorage.getItem(SUBJECT_SCALE_MAP_KEY);
+                if (storedMap) {
+                    subjectScaleMap = JSON.parse(storedMap);
+                } else {
+                    // Default all subjects to use the 'DEFAULT' scale
+                    SUBJECTS.forEach(sub => { subjectScaleMap[sub.subjectId] = 'DEFAULT'; });
+                }
+                
+                // Set tab names correctly
+                SCALE_SLOTS.forEach(id => {
+                    if (namedGradeScales[id] && namedGradeScales[id].name) {
+                        const button = document.querySelector(`.tab-button[data-scale-id="${id}"]`);
+                        if (button) button.textContent = namedGradeScales[id].name;
+                    }
+                });
+
             } catch (e) {
-                console.error("Could not load grade scale from storage.", e);
-                currentGradeScale = { ...DEFAULT_GRADE_SCALE };
+                console.error("Could not load grade scales or map from storage.", e);
+                // Reset to safe defaults if storage fails
+                namedGradeScales = { DEFAULT: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT1: { ...DEFAULT_GRADE_SCALE_CUTOFFS }, ALT2: { ...DEFAULT_GRADE_SCALE_CUTOFFS } };
+                SUBJECTS.forEach(sub => { subjectScaleMap[sub.subjectId] = 'DEFAULT'; });
             }
-            renderGradeScaleInputs();
+            showScale(currentEditingScaleId);
         }
 
-        function saveGradeScale() {
+        function saveNamedScales() {
             try {
-                localStorage.setItem('sgpaGradeScale', JSON.stringify(currentGradeScale));
+                localStorage.setItem(SCALE_STORAGE_KEY, JSON.stringify(namedGradeScales));
             } catch (e) {
-                console.error("Could not save grade scale to storage.", e);
+                console.error("Could not save named grade scales.", e);
             }
-            calculateSGPA(); // Recalculate everything with the new scale
+            calculateSGPA();
         }
 
-        function renderGradeScaleInputs() {
+        function saveSubjectScaleMap() {
+            try {
+                localStorage.setItem(SUBJECT_SCALE_MAP_KEY, JSON.stringify(subjectScaleMap));
+            } catch (e) {
+                console.error("Could not save subject scale map.", e);
+            }
+            calculateSGPA();
+        }
+
+        function showScale(scaleId) {
+            currentEditingScaleId = scaleId;
+            const currentCutoffs = namedGradeScales[scaleId] || DEFAULT_GRADE_SCALE_CUTOFFS;
             const scaleInputsEl = document.getElementById('scale-inputs');
-            if (!scaleInputsEl) return;
             
+            // Update Tab active state
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-button[data-scale-id="${scaleId}"]`).classList.add('active');
+
             let html = '';
-            const points = Object.keys(DEFAULT_GRADE_SCALE).map(Number).sort((a, b) => b - a);
+            const points = Object.keys(DEFAULT_GRADE_SCALE_CUTOFFS).map(Number).sort((a, b) => b - a);
 
             points.forEach(point => {
                 const gradeName = getGradeNameByPoint(point);
@@ -256,12 +317,12 @@
                             <label for="grade-${point}" class="block text-xs font-medium text-gray-400 mb-1">Min. Marks for ${gradeName} (${point} Pts)</label>
                             <input 
                                 type="number" 
-                                id="grade-${point}" 
+                                data-point="${point}" 
                                 class="w-full p-2 border border-gray-600 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold text-center"
                                 min="0" 
                                 max="100" 
-                                value="${currentGradeScale[point] || 0}"
-                                oninput="updateGradeScale(${point}, this.value)"
+                                value="${currentCutoffs[point] || 0}"
+                                oninput="updateCurrentScaleCutoff(${point}, this.value)"
                             />
                         </div>
                     `;
@@ -270,7 +331,7 @@
             scaleInputsEl.innerHTML = html;
         }
 
-        function updateGradeScale(point, value) {
+        function updateCurrentScaleCutoff(point, value) {
             let numValue = parseInt(value);
             if (isNaN(numValue) || numValue < 0) {
                 numValue = 0;
@@ -279,25 +340,30 @@
                 numValue = 100;
             }
             
-            const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
-            const index = points.indexOf(point);
-
-            if (index > 0) {
-                const nextHigherPoint = points[index - 1];
-                if (numValue > (currentGradeScale[nextHigherPoint] || 100)) {
-                    numValue = (currentGradeScale[nextHigherPoint] || 100);
-                    document.getElementById(`grade-${point}`).value = numValue;
-                }
+            // Store value in the current scale object
+            const currentCutoffs = namedGradeScales[currentEditingScaleId];
+            if (currentCutoffs) {
+                currentCutoffs[point] = numValue;
+                saveNamedScales();
             }
-            
-            currentGradeScale[point] = numValue;
-            saveGradeScale();
         }
 
-        function resetGradeScale() {
-            currentGradeScale = { ...DEFAULT_GRADE_SCALE };
-            saveGradeScale();
-            renderGradeScaleInputs();
+        function resetCurrentScale() {
+            namedGradeScales[currentEditingScaleId] = { ...DEFAULT_GRADE_SCALE_CUTOFFS };
+            saveNamedScales();
+            showScale(currentEditingScaleId);
+        }
+        
+        function saveCurrentScaleName() {
+            const newName = prompt(`Enter a new name for ${getScaleDisplayName(currentEditingScaleId)}:`);
+            if (newName && newName.trim()) {
+                const button = document.querySelector(`.tab-button[data-scale-id="${currentEditingScaleId}"]`);
+                if (button) button.textContent = newName.trim();
+                namedGradeScales[currentEditingScaleId].name = newName.trim();
+                saveNamedScales();
+                // Re-render subject cards to update dropdown names
+                renderSubjectCards();
+            }
         }
 
         function toggleGradeScalePanel() {
@@ -329,12 +395,16 @@
 
         /**
          * Determines the grade and grade point based on the total marks (out of 100).
+         * Uses the specific scale assigned to the subject.
          */
-        function calculateGradePoint(marks) {
-            const points = Object.keys(currentGradeScale).map(Number).sort((a, b) => b - a);
+        function calculateGradePoint(subjectId, marks) {
+            const scaleId = subjectScaleMap[subjectId] || 'DEFAULT';
+            const cutoffs = namedGradeScales[scaleId] || DEFAULT_GRADE_SCALE_CUTOFFS;
+            
+            const points = Object.keys(cutoffs).map(Number).sort((a, b) => b - a);
 
             for (const point of points) {
-                if (marks >= (currentGradeScale[point] || 0)) {
+                if (marks >= (cutoffs[point] || 0)) {
                     return { grade: getGradeNameByPoint(point), points: point };
                 }
             }
@@ -343,23 +413,59 @@
 
         // --- Subject Rendering and Calculation Logic ---
 
+        function renderSubjectCards() {
+             const container = document.getElementById('subjects-container');
+             container.innerHTML = SUBJECTS.map((sub) => renderSingleSubjectCard(sub)).join('');
+             
+             // Re-attach input listeners
+             const inputs = container.querySelectorAll('input[type="number"]');
+             inputs.forEach(input => {
+                input.addEventListener('change', calculateSGPA);
+                input.addEventListener('blur', calculateSGPA); 
+            });
+            // Re-run calculation
+            calculateSGPA();
+        }
+
+        function handleScaleChange(selectElement) {
+            const subjectId = selectElement.getAttribute('data-subject-id');
+            const newScaleId = selectElement.value;
+            subjectScaleMap[subjectId] = newScaleId;
+            saveSubjectScaleMap();
+        }
+
         /**
          * Renders the input fields for a single subject card.
          */
-        function renderSubjectCard(subject) {
-            const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        function renderSingleSubjectCard(subject) {
+            const id = subject.subjectId;
             const creditDisplay = subject.credits % 1 === 0 ? subject.credits : subject.credits.toFixed(1);
-            
             const savedMarks = loadMarks()[id] || {};
+            const currentScaleId = subjectScaleMap[id] || 'DEFAULT';
 
             const inputsHtml = subject.components.map(component => 
                 renderInputField(id, component, savedMarks[component.key] || '')
             ).join('');
 
+            // Options for scale selector
+            const scaleOptions = SCALE_SLOTS.map(scaleId => {
+                const name = (namedGradeScales[scaleId] && namedGradeScales[scaleId].name) || getScaleDisplayName(scaleId);
+                return `<option value="${scaleId}" ${currentScaleId === scaleId ? 'selected' : ''}>${name}</option>`;
+            }).join('');
+
             return `
                 <div class="subject-card p-6 rounded-xl border-l-4 ${subject.borderColor}">
-                    <h2 class="text-xl font-bold ${subject.titleColor} mb-4">${subject.name} (${creditDisplay} Credits)</h2>
-                    
+                    <div class="flex justify-between items-start mb-3">
+                         <h2 class="text-xl font-bold ${subject.titleColor}">${subject.name} (${creditDisplay} Credits)</h2>
+                         <select 
+                            data-subject-id="${id}" 
+                            onchange="handleScaleChange(this)"
+                            class="bg-gray-700 text-gray-200 border border-gray-600 rounded-md p-1 text-xs shadow-md"
+                         >
+                            ${scaleOptions}
+                         </select>
+                    </div>
+
                     <div class="grid grid-cols-3 gap-3">
                         ${inputsHtml}
                     </div>
@@ -382,7 +488,7 @@
          */
         function renderInputField(subjectId, component, savedValue) {
             const componentType = component.type.toLowerCase();
-            const componentKey = component.key; // 'midsem', 'endsem', 'ta'
+            const componentKey = component.key;
             const max = component.max;
 
             return `
@@ -415,18 +521,15 @@
             const componentKey = input.getAttribute('data-component-key');
             const value = input.value;
 
-            // Only save if the value is not empty
             if (value !== '') {
                 saveMark(subjectId, componentKey, parseFloat(value));
             } else {
-                // Optionally clear from storage if left blank, treating it as 0 for calculation
                 saveMark(subjectId, componentKey, 0); 
             }
         }
 
         /**
          * Ensures input value does not exceed the data-max attribute.
-         * @param {HTMLInputElement} input
          */
         function validateInput(input) {
             let value = parseFloat(input.value);
@@ -440,7 +543,6 @@
                 input.value = max;
             }
             
-            // Only update input value if it's a valid number or 0
             if (!isNaN(value)) {
                 input.value = value;
             }
@@ -453,23 +555,19 @@
         function calculateSGPA() {
             let totalWeightedPoints = 0;
             let totalCredits = 0;
-            const currentMarks = loadMarks();
 
             SUBJECTS.forEach((subject) => {
-                const id = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const id = subject.subjectId;
                 const credits = subject.credits;
                 let totalMarks = 0;
                 let isEntered = false;
                 
-                // Retrieve marks from the DOM inputs first (which were loaded on startup)
                 subject.components.forEach(component => {
                     const componentType = component.type.toLowerCase();
                     const inputEl = document.getElementById(`${id}-${componentType}`);
-                    // Use the value from the DOM input
                     const mark = parseFloat(inputEl.value) || 0; 
                     totalMarks += mark;
                     
-                    // Check if the input field actually has content (not just 0 calculated from an empty string)
                     if (inputEl.value !== '') {
                         isEntered = true;
                     }
@@ -479,26 +577,24 @@
                 const gradeEl = document.getElementById(`${id}-grade`);
                 const pointsEl = document.getElementById(`${id}-points`);
 
-                if (isEntered || totalMarks > 0) { // Check if marks were entered or retrieved from storage (if > 0)
+                if (isEntered || totalMarks > 0) { 
                     
-                    const { grade, points } = calculateGradePoint(totalMarks);
+                    // Crucial change: calculate grade based on subject's assigned scale
+                    const { grade, points } = calculateGradePoint(id, totalMarks);
 
                     // Update individual subject results
                     totalEl.textContent = totalMarks;
                     gradeEl.textContent = grade;
                     pointsEl.textContent = points;
                     
-                    // Update text color based on grade result
                     const gradeTextColor = points >= 7 ? 'text-green-400' : 
                                            points >= 4 ? 'text-yellow-400' : 'text-red-400';
                     gradeEl.className = `font-bold ${gradeTextColor}`;
 
-                    // Accumulate for SGPA
                     totalWeightedPoints += credits * points;
                     totalCredits += credits;
 
                 } else {
-                    // Reset if no marks entered for subject
                     totalEl.textContent = '0';
                     gradeEl.textContent = 'N/A';
                     pointsEl.textContent = '0';
@@ -515,7 +611,6 @@
                 sgpa = totalWeightedPoints / totalCredits;
                 sgpaEl.textContent = sgpa.toFixed(2);
                 
-                // Update summary message based on the new ranges
                 let message;
                 if (sgpa >= 9.0) {
                     message = "Outstanding";
@@ -542,23 +637,11 @@
          * Initialize the application: render cards and attach event listeners.
          */
         function initializeApp() {
-            // 1. Load the customized grade scale (or default)
-            loadGradeScale(); 
+            // 1. Load all scales and the subject map
+            loadAllScalesAndMaps(); 
             
             // 2. Render subject cards (this now loads marks from storage)
-            const container = document.getElementById('subjects-container');
-            container.innerHTML = SUBJECTS.map((sub) => renderSubjectCard(sub)).join('');
-
-            // 3. Attach input listeners
-            // Note: input listeners now call handleMarkInput, which saves the data.
-            const inputs = container.querySelectorAll('input[type="number"]');
-            inputs.forEach(input => {
-                input.addEventListener('change', calculateSGPA);
-                input.addEventListener('blur', calculateSGPA); 
-            });
-
-            // 4. Initial calculation run (using loaded/default values)
-            calculateSGPA();
+            renderSubjectCards();
         }
 
         // Run the initialization function when the window loads
