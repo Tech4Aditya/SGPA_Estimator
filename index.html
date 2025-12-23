@@ -6,7 +6,9 @@
     <title>SGPA & CGPA Calculator | JIIT x Aditya Pandey</title>
     <link rel="icon" type="image/png" href="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/Logo-jiit%20(1).png?raw=true">
     
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for the X icon and theme icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
@@ -63,6 +65,7 @@
         .tab-button.active {
             border-bottom: 2px solid #6366f1;
             background-color: #374151;
+            color: #e0e7ff;
         }
 
         /* Glassmorphism utility */
@@ -77,6 +80,7 @@
 
     <div class="max-w-4xl mx-auto">
         
+        <!-- Top Controls: Semester Select -->
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center space-x-3">
                 <div class="relative">
@@ -104,37 +108,49 @@
 
         <header class="text-center mb-10 p-6 bg-gray-800 rounded-xl shadow-2xl">
             <div class="flex items-center justify-center space-x-4 mb-6">
+                <!-- Aditya Pandey Image with Red Glow -->
                 <img src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/adityapandey.jpg?raw=true" class="red-glow h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-4 border-red-500 shadow-lg" alt="Aditya Pandey">
+                
+                <!-- Cross Icon with Color Cycle Glow -->
                 <i class="fa-solid fa-xmark text-4xl cross-glow"></i>
+
+                <!-- JIIT Logo -->
                 <img src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/Logo-jiit%20(1).png?raw=true" class="h-16 w-16 md:h-20 md:w-20 object-contain rounded-full bg-white p-1 border-4 border-blue-500 shadow-lg" alt="JIIT">
             </div>
             <h1 class="text-3xl md:text-4xl font-extrabold text-blue-400">SGPA & CGPA Tracker</h1>
             <p id="header-subtitle" class="text-gray-400 mt-2 text-lg">Currently viewing Semester 1</p>
         </header>
 
+        <!-- Grade Scale Customization Panel -->
         <div class="mb-8">
             <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition flex justify-between items-center">
-                <span>Grade Scale Manager (A, B, C)</span>
+                <span>Grade Scale Manager (Define A, B, C)</span>
                 <span id="toggle-icon-panel">▼</span>
             </button>
 
-            <div id="grade-scale-panel" class="mt-4 p-0 bg-gray-800 rounded-xl border border-indigo-700 hidden">
+            <div id="grade-scale-panel" class="mt-4 p-0 bg-gray-800 rounded-xl border border-indigo-700 hidden transition duration-300">
+                <!-- Tabs for Scales -->
                 <div class="flex border-b border-indigo-700">
                     <button class="tab-button active flex-1 p-3 text-sm font-semibold" data-scale-id="DEFAULT" onclick="showScale('DEFAULT')">Scale A</button>
                     <button class="tab-button flex-1 p-3 text-sm font-semibold" data-scale-id="ALT1" onclick="showScale('ALT1')">Scale B</button>
                     <button class="tab-button flex-1 p-3 text-sm font-semibold" data-scale-id="ALT2" onclick="showScale('ALT2')">Scale C</button>
                 </div>
+
+                <!-- Scale Content -->
                 <div id="scale-content" class="p-6">
-                    <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4"></div>
+                    <p class="font-semibold text-gray-300 mb-4 text-sm">Set Minimum Marks Required (Max 100):</p>
+                    <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <!-- Inputs injected here -->
+                    </div>
                     <div class="mt-6 flex justify-between">
-                        <button onclick="saveCurrentScaleName()" class="bg-gray-700 text-white py-2 px-4 rounded-md text-sm">Rename Scale</button>
-                        <button onclick="resetCurrentScale()" class="bg-red-500 text-white py-2 px-4 rounded-md text-sm">Reset</button>
+                        <button onclick="saveCurrentScaleName()" class="bg-gray-700 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-600">Rename Scale</button>
+                        <button onclick="resetCurrentScale()" class="bg-red-500 text-white py-2 px-4 rounded-md text-sm hover:bg-red-600">Reset Scale</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Mobile Manual Input (Visible only on tiny screens) -->
+        <!-- Mobile Manual Input -->
         <div class="sm:hidden mb-6 flex items-center justify-between glass p-3 rounded-lg border border-gray-600">
             <label class="text-xs uppercase font-bold text-gray-400">Manual SGPA Entry</label>
             <input id="manual-sgpa-mobile" type="number" step="0.01" min="0" max="10" placeholder="0.00" 
@@ -142,15 +158,21 @@
                 oninput="saveManualSGPA(this.value)">
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="subjects-container"></div>
+        <!-- Subject Cards Container -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="subjects-container">
+            <!-- Subject Cards will be injected here -->
+        </div>
 
+        <!-- Result Panels -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- SGPA Result Panel -->
             <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-xl shadow-2xl text-white text-center relative overflow-hidden">
                 <div id="override-badge" class="hidden absolute top-2 right-2 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded shadow-lg uppercase">Manual</div>
                 <p class="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Sem <span id="res-sem-num">1</span> SGPA</p>
                 <div id="sgpa-result" class="text-5xl font-black">0.00</div>
                 <p id="sgpa-summary" class="mt-3 text-sm font-medium">Enter marks to begin</p>
             </div>
+            <!-- CGPA Result Panel -->
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 rounded-xl shadow-2xl text-white text-center">
                 <p class="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Overall CGPA</p>
                 <div id="cgpa-result" class="text-5xl font-black">0.00</div>
@@ -160,8 +182,8 @@
     </div>
 
     <script>
+        // --- Configuration & Constants ---
         const DEFAULT_CUTOFFS = { 10: 80, 9: 70, 8: 65, 7: 60, 6: 55, 5: 50, 4: 40 };
-        
         const DATA_BY_SEM = {
             1: [
                 { id: "sdf1", name: "SDF-1", credits: 4, components: [{t:'Mid',m:30,k:'m'},{t:'End',m:40,k:'e'},{t:'TA',m:30,k:'t'}], tCol:'text-amber-400', bCol:'border-amber-400' },
@@ -190,13 +212,13 @@
         let scaleMapsBySem = {};
         let manualSGPABySem = {};
         let currentEditingScaleId = 'DEFAULT';
+        const SCALE_SLOTS = ['DEFAULT', 'ALT1', 'ALT2'];
 
         function changeSemester(val) {
             currentSem = parseInt(val);
             document.getElementById('header-subtitle').textContent = `Currently viewing Semester ${currentSem}`;
             document.getElementById('res-sem-num').textContent = currentSem;
             
-            // Update manual entry fields
             const manualVal = manualSGPABySem[currentSem] || '';
             document.getElementById('manual-sgpa').value = manualVal;
             document.getElementById('manual-sgpa-mobile').value = manualVal;
@@ -206,7 +228,11 @@
 
         function loadStorage() {
             const s = localStorage.getItem('sgpaNamedGradeScales');
-            namedScales = s ? JSON.parse(s) : { DEFAULT: { n:'Scale A', c:{...DEFAULT_CUTOFFS} }, ALT1: { n:'Scale B', c:{...DEFAULT_CUTOFFS} }, ALT2: { n:'Scale C', c:{...DEFAULT_CUTOFFS} } };
+            namedScales = s ? JSON.parse(s) : { 
+                DEFAULT: { n:'Scale A', c:{...DEFAULT_CUTOFFS} }, 
+                ALT1: { n:'Scale B', c:{...DEFAULT_CUTOFFS} }, 
+                ALT2: { n:'Scale C', c:{...DEFAULT_CUTOFFS} } 
+            };
             
             const m = localStorage.getItem('sgpaScaleMapsBySem');
             scaleMapsBySem = m ? JSON.parse(m) : { 1:{}, 2:{} };
@@ -219,7 +245,6 @@
                 if (btn) btn.textContent = namedScales[id].n;
             });
 
-            // Initial manual field setup
             const initialManual = manualSGPABySem[currentSem] || '';
             document.getElementById('manual-sgpa').value = initialManual;
             document.getElementById('manual-sgpa-mobile').value = initialManual;
@@ -227,15 +252,16 @@
             showScale(currentEditingScaleId);
         }
 
-        const SCALE_SLOTS = ['DEFAULT', 'ALT1', 'ALT2'];
-
         function showScale(id) {
             currentEditingScaleId = id;
             document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.dataset.scaleId === id));
+            
             const html = Object.keys(DEFAULT_CUTOFFS).sort((a,b)=>b-a).map(p => `
                 <div>
                     <label class="block text-[10px] text-gray-500 mb-1">${getGradeName(p)} (${p} Pts)</label>
-                    <input type="number" class="w-full p-2 border border-gray-600 rounded text-center text-xs font-bold" value="${namedScales[id].c[p]}" oninput="updateCutoff(${p}, this.value)">
+                    <input type="number" class="w-full p-2 border border-gray-600 rounded text-center text-xs font-bold" 
+                        value="${namedScales[id].c[p]}" 
+                        oninput="updateCutoff(${p}, this.value)">
                 </div>
             `).join('');
             document.getElementById('scale-inputs').innerHTML = html;
@@ -250,7 +276,6 @@
         function saveManualSGPA(val) {
             manualSGPABySem[currentSem] = val;
             localStorage.setItem('sgpaManualBySem', JSON.stringify(manualSGPABySem));
-            // Sync desktop and mobile inputs
             document.getElementById('manual-sgpa').value = val;
             document.getElementById('manual-sgpa-mobile').value = val;
             calculateAll();
@@ -261,7 +286,10 @@
             if (n) {
                 namedScales[currentEditingScaleId].n = n;
                 localStorage.setItem('sgpaNamedGradeScales', JSON.stringify(namedScales));
-                loadStorage();
+                SCALE_SLOTS.forEach(id => {
+                    const btn = document.querySelector(`.tab-button[data-scale-id="${id}"]`);
+                    if (btn) btn.textContent = namedScales[id].n;
+                });
                 renderSubjectCards();
             }
         }
@@ -292,7 +320,7 @@
                     <div class="subject-card p-6 rounded-xl border-l-4 ${sub.bCol}">
                         <div class="flex justify-between items-start mb-4">
                             <h2 class="text-lg font-bold ${sub.tCol}">${sub.name} <span class="text-xs opacity-60">(${sub.credits})</span></h2>
-                            <select onchange="updateSubScale('${sub.id}', this.value)" class="bg-gray-700 text-[10px] border border-gray-600 rounded px-1">
+                            <select onchange="updateSubScale('${sub.id}', this.value)" class="bg-gray-700 text-[10px] border border-gray-600 rounded px-1 cursor-pointer">
                                 ${opts}
                             </select>
                         </div>
@@ -300,7 +328,9 @@
                             ${sub.components.map(c => `
                                 <div>
                                     <label class="text-[10px] text-gray-500">${c.t} (${c.m})</label>
-                                    <input type="number" value="${subMarks[c.k]||''}" class="w-full p-2 rounded text-center text-sm font-bold" oninput="saveMark('${sub.id}','${c.k}',this.value,${c.m})">
+                                    <input type="number" value="${subMarks[c.k] !== undefined ? subMarks[c.k] : ''}" 
+                                        class="w-full p-2 rounded text-center text-sm font-bold" 
+                                        oninput="saveMark('${sub.id}','${c.k}',this.value,${c.m})">
                                 </div>
                             `).join('')}
                         </div>
@@ -315,11 +345,17 @@
         }
 
         function saveMark(subId, key, val, max) {
-            let num = parseFloat(val) || 0;
-            if (num > max) num = max;
             const saved = JSON.parse(localStorage.getItem(`sgpaMarks_sem${currentSem}`) || '{}');
-            if (!saved[subId]) saved[subId] = {};
-            saved[subId][key] = num;
+            if (val === '') {
+                if(saved[subId]) delete saved[subId][key];
+                if(saved[subId] && Object.keys(saved[subId]).length === 0) delete saved[subId];
+            } else {
+                let num = parseFloat(val);
+                if (num > max) num = max;
+                if (num < 0) num = 0;
+                if (!saved[subId]) saved[subId] = {};
+                saved[subId][key] = num;
+            }
             localStorage.setItem(`sgpaMarks_sem${currentSem}`, JSON.stringify(saved));
             calculateAll();
         }
@@ -335,26 +371,32 @@
             // Calc Current Sem result
             const res = calcSem(currentSem);
             
-            // Check if manual override exists for current sem
+            // Check manual override
             const manual = manualSGPABySem[currentSem];
-            const isManual = manual !== '' && manual !== null;
+            const isManual = manual !== '' && manual !== null && !isNaN(parseFloat(manual));
             
             const sgpaDisplay = isManual ? parseFloat(manual).toFixed(2) : res.sgpa;
             document.getElementById('sgpa-result').textContent = sgpaDisplay;
             document.getElementById('sgpa-summary').textContent = getSummary(sgpaDisplay);
             document.getElementById('override-badge').classList.toggle('hidden', !isManual);
 
-            // Update UI totals for current visible subjects
-            (DATA_BY_SEM[currentSem] || []).forEach(s => {
-                const subMarks = JSON.parse(localStorage.getItem(`sgpaMarks_sem${currentSem}`) || '{}')[s.id] || {};
+            // Update visible subject UI info
+            const currentSubjects = DATA_BY_SEM[currentSem] || [];
+            const savedMarks = JSON.parse(localStorage.getItem(`sgpaMarks_sem${currentSem}`) || '{}');
+            const semScaleMap = scaleMapsBySem[currentSem] || {};
+
+            currentSubjects.forEach(s => {
+                const subMarks = savedMarks[s.id] || {};
                 const total = Object.values(subMarks).reduce((a,b)=>a+b, 0);
-                const scaleId = (scaleMapsBySem[currentSem] || {})[s.id] || 'DEFAULT';
-                const cutoffs = namedScales[scaleId].c;
+                const scaleId = semScaleMap[s.id] || 'DEFAULT';
+                const cutoffs = namedScales[scaleId] ? namedScales[scaleId].c : DEFAULT_CUTOFFS;
+                
                 let pts = 0;
                 let grd = 'F';
                 Object.keys(cutoffs).sort((a,b)=>b-a).forEach(p => {
-                    if (total >= cutoffs[p] && pts === 0) { pts = p; grd = getGradeName(p); }
+                    if (total >= cutoffs[p] && pts === 0) { pts = parseInt(p); grd = getGradeName(p); }
                 });
+
                 const elT = document.getElementById(`tot-${s.id}`);
                 const elG = document.getElementById(`grd-${s.id}`);
                 if (elT) elT.textContent = total;
@@ -369,15 +411,14 @@
             let totalC = 0;
             [1,2].forEach(sNum => {
                 const sManual = manualSGPABySem[sNum];
-                if (sManual !== '' && sManual !== null) {
-                    // If manual, we estimate weighted points using total credits of that sem
+                if (sManual !== '' && sManual !== null && !isNaN(parseFloat(sManual))) {
                     const subjects = DATA_BY_SEM[sNum] || [];
                     const semCredits = subjects.reduce((a,b) => a + b.credits, 0);
                     totalWP += parseFloat(sManual) * semCredits;
                     totalC += semCredits;
                 } else {
                     const sRes = calcSem(sNum);
-                    if (parseFloat(sRes.sgpa) > 0) {
+                    if (sRes.tc > 0) {
                         totalWP += sRes.wp;
                         totalC += sRes.tc;
                     }
@@ -399,7 +440,7 @@
                 if (subMarks && Object.keys(subMarks).length > 0) {
                     const total = Object.values(subMarks).reduce((a,b)=>a+b,0);
                     const scaleId = semScaleMap[sub.id] || 'DEFAULT';
-                    const cutoffs = namedScales[scaleId].c;
+                    const cutoffs = namedScales[scaleId] ? namedScales[scaleId].c : DEFAULT_CUTOFFS;
                     let pts = 0;
                     Object.keys(cutoffs).sort((a,b)=>b-a).forEach(p => {
                         if (total >= cutoffs[p] && pts === 0) pts = parseInt(p);
