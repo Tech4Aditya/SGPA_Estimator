@@ -8,7 +8,7 @@
     
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Font Awesome for the X icon and theme icon -->
+    <!-- Load Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
@@ -68,7 +68,6 @@
             color: #e0e7ff;
         }
 
-        /* Glassmorphism utility */
         .glass {
             background: rgba(31, 41, 55, 0.6);
             backdrop-filter: blur(10px);
@@ -98,30 +97,25 @@
                 <!-- Manual Entry Option -->
                 <div class="hidden sm:flex items-center space-x-2 glass px-3 py-1.5 rounded-lg border border-gray-600">
                     <label class="text-[10px] uppercase font-bold text-gray-400">Manual SGPA</label>
-                    <input id="manual-sgpa" type="number" step="0.01" min="0" max="10" placeholder="e.g. 8.5" 
+                    <input id="manual-sgpa" type="text" placeholder="e.g. 8.5" 
                         class="w-16 h-7 bg-transparent border-none text-center text-sm font-bold text-blue-400 focus:ring-0"
-                        oninput="saveManualSGPA(this.value)">
+                        oninput="saveManualSGPA(this.value, 'manual-sgpa')">
                 </div>
             </div>
             <div class="text-xs text-gray-500 uppercase tracking-widest font-bold">JIIT Academic Portal</div>
         </div>
 
-        <header class="text-center mb-10 p-6 bg-gray-800 rounded-xl shadow-2xl">
+        <header class="text-center mb-10 p-6 bg-gray-800 rounded-xl shadow-2xl transition duration-300">
             <div class="flex items-center justify-center space-x-4 mb-6">
-                <!-- Aditya Pandey Image with Red Glow -->
                 <img src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/adityapandey.jpg?raw=true" class="red-glow h-16 w-16 md:h-20 md:w-20 rounded-full object-cover border-4 border-red-500 shadow-lg" alt="Aditya Pandey">
-                
-                <!-- Cross Icon with Color Cycle Glow -->
                 <i class="fa-solid fa-xmark text-4xl cross-glow"></i>
-
-                <!-- JIIT Logo -->
                 <img src="https://github.com/Tech4Aditya/Virtual-Physics-Lab/blob/main/Logo-jiit%20(1).png?raw=true" class="h-16 w-16 md:h-20 md:w-20 object-contain rounded-full bg-white p-1 border-4 border-blue-500 shadow-lg" alt="JIIT">
             </div>
             <h1 class="text-3xl md:text-4xl font-extrabold text-blue-400">SGPA & CGPA Tracker</h1>
             <p id="header-subtitle" class="text-gray-400 mt-2 text-lg">Currently viewing Semester 1</p>
         </header>
 
-        <!-- Grade Scale Customization Panel -->
+        <!-- Grade Scale Manager -->
         <div class="mb-8">
             <button onclick="toggleGradeScalePanel()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition flex justify-between items-center">
                 <span>Grade Scale Manager (Define A, B, C)</span>
@@ -129,19 +123,15 @@
             </button>
 
             <div id="grade-scale-panel" class="mt-4 p-0 bg-gray-800 rounded-xl border border-indigo-700 hidden transition duration-300">
-                <!-- Tabs for Scales -->
                 <div class="flex border-b border-indigo-700">
                     <button class="tab-button active flex-1 p-3 text-sm font-semibold" data-scale-id="DEFAULT" onclick="showScale('DEFAULT')">Scale A</button>
                     <button class="tab-button flex-1 p-3 text-sm font-semibold" data-scale-id="ALT1" onclick="showScale('ALT1')">Scale B</button>
                     <button class="tab-button flex-1 p-3 text-sm font-semibold" data-scale-id="ALT2" onclick="showScale('ALT2')">Scale C</button>
                 </div>
 
-                <!-- Scale Content -->
                 <div id="scale-content" class="p-6">
                     <p class="font-semibold text-gray-300 mb-4 text-sm">Set Minimum Marks Required (Max 100):</p>
-                    <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                        <!-- Inputs injected here -->
-                    </div>
+                    <div id="scale-inputs" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4"></div>
                     <div class="mt-6 flex justify-between">
                         <button onclick="saveCurrentScaleName()" class="bg-gray-700 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-600">Rename Scale</button>
                         <button onclick="resetCurrentScale()" class="bg-red-500 text-white py-2 px-4 rounded-md text-sm hover:bg-red-600">Reset Scale</button>
@@ -153,36 +143,31 @@
         <!-- Mobile Manual Input -->
         <div class="sm:hidden mb-6 flex items-center justify-between glass p-3 rounded-lg border border-gray-600">
             <label class="text-xs uppercase font-bold text-gray-400">Manual SGPA Entry</label>
-            <input id="manual-sgpa-mobile" type="number" step="0.01" min="0" max="10" placeholder="0.00" 
+            <input id="manual-sgpa-mobile" type="text" placeholder="0.00" 
                 class="w-20 h-8 rounded bg-gray-900 border-gray-600 text-center text-sm font-bold text-blue-400"
-                oninput="saveManualSGPA(this.value)">
+                oninput="saveManualSGPA(this.value, 'manual-sgpa-mobile')">
         </div>
 
         <!-- Subject Cards Container -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="subjects-container">
-            <!-- Subject Cards will be injected here -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="subjects-container"></div>
 
         <!-- Result Panels -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- SGPA Result Panel -->
             <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-xl shadow-2xl text-white text-center relative overflow-hidden">
                 <div id="override-badge" class="hidden absolute top-2 right-2 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded shadow-lg uppercase">Manual</div>
                 <p class="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Sem <span id="res-sem-num">1</span> SGPA</p>
                 <div id="sgpa-result" class="text-5xl font-black">0.00</div>
                 <p id="sgpa-summary" class="mt-3 text-sm font-medium">Enter marks to begin</p>
             </div>
-            <!-- CGPA Result Panel -->
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 rounded-xl shadow-2xl text-white text-center">
                 <p class="text-sm font-bold uppercase tracking-wider opacity-80 mb-1">Overall CGPA</p>
                 <div id="cgpa-result" class="text-5xl font-black">0.00</div>
-                <p id="cgpa-summary" class="mt-3 text-sm font-medium">Based on all saved semesters</p>
+                <p id="cgpa-summary" class="mt-3 text-lg font-medium">Loading...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Configuration & Constants ---
         const DEFAULT_CUTOFFS = { 10: 80, 9: 70, 8: 65, 7: 60, 6: 55, 5: 50, 4: 40 };
         const DATA_BY_SEM = {
             1: [
@@ -245,9 +230,8 @@
                 if (btn) btn.textContent = namedScales[id].n;
             });
 
-            const initialManual = manualSGPABySem[currentSem] || '';
-            document.getElementById('manual-sgpa').value = initialManual;
-            document.getElementById('manual-sgpa-mobile').value = initialManual;
+            document.getElementById('manual-sgpa').value = manualSGPABySem[currentSem] || '';
+            document.getElementById('manual-sgpa-mobile').value = manualSGPABySem[currentSem] || '';
 
             showScale(currentEditingScaleId);
         }
@@ -273,11 +257,18 @@
             calculateAll();
         }
 
-        function saveManualSGPA(val) {
-            manualSGPABySem[currentSem] = val;
+        function saveManualSGPA(val, originId) {
+            // Clean input: only allow numbers and one decimal point
+            const cleaned = val.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+            
+            manualSGPABySem[currentSem] = cleaned;
             localStorage.setItem('sgpaManualBySem', JSON.stringify(manualSGPABySem));
-            document.getElementById('manual-sgpa').value = val;
-            document.getElementById('manual-sgpa-mobile').value = val;
+            
+            // Sync ONLY the other field to avoid cursor jumping
+            const targetId = originId === 'manual-sgpa' ? 'manual-sgpa-mobile' : 'manual-sgpa';
+            const target = document.getElementById(targetId);
+            if (target) target.value = cleaned;
+            
             calculateAll();
         }
 
@@ -368,19 +359,15 @@
         }
 
         function calculateAll() {
-            // Calc Current Sem result
             const res = calcSem(currentSem);
-            
-            // Check manual override
             const manual = manualSGPABySem[currentSem];
-            const isManual = manual !== '' && manual !== null && !isNaN(parseFloat(manual));
+            const isManual = manual !== '' && manual !== null && !isNaN(parseFloat(manual)) && !manual.endsWith('.');
             
             const sgpaDisplay = isManual ? parseFloat(manual).toFixed(2) : res.sgpa;
             document.getElementById('sgpa-result').textContent = sgpaDisplay;
             document.getElementById('sgpa-summary').textContent = getSummary(sgpaDisplay);
             document.getElementById('override-badge').classList.toggle('hidden', !isManual);
 
-            // Update visible subject UI info
             const currentSubjects = DATA_BY_SEM[currentSem] || [];
             const savedMarks = JSON.parse(localStorage.getItem(`sgpaMarks_sem${currentSem}`) || '{}');
             const semScaleMap = scaleMapsBySem[currentSem] || {};
@@ -406,12 +393,11 @@
                 }
             });
 
-            // Calc Overall CGPA
             let totalWP = 0;
             let totalC = 0;
             [1,2].forEach(sNum => {
                 const sManual = manualSGPABySem[sNum];
-                if (sManual !== '' && sManual !== null && !isNaN(parseFloat(sManual))) {
+                if (sManual !== '' && sManual !== null && !isNaN(parseFloat(sManual)) && !sManual.toString().endsWith('.')) {
                     const subjects = DATA_BY_SEM[sNum] || [];
                     const semCredits = subjects.reduce((a,b) => a + b.credits, 0);
                     totalWP += parseFloat(sManual) * semCredits;
@@ -424,8 +410,9 @@
                     }
                 }
             });
-            const cgpa = totalC > 0 ? (totalWP / totalC).toFixed(2) : '0.00';
-            document.getElementById('cgpa-result').textContent = cgpa;
+            const cgpaVal = totalC > 0 ? (totalWP / totalC).toFixed(2) : '0.00';
+            document.getElementById('cgpa-result').textContent = cgpaVal;
+            document.getElementById('cgpa-summary').textContent = getSummary(cgpaVal);
         }
 
         function calcSem(sNum) {
@@ -455,7 +442,7 @@
         function getSummary(v) {
             const n = parseFloat(v);
             if (n >= 9) return "Outstanding";
-            if (n >= 8) return "Nice job";
+            if (n >= 8) return "Excellent";
             if (n >= 7) return "Good work, keep it up";
             if (n >= 6) return "Can do better, efforts required";
             if (n >= 4) return "Need to do hardwork";
@@ -476,4 +463,5 @@
         };
     </script>
 </body>
+</html>
 </html>
